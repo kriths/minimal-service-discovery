@@ -1,3 +1,19 @@
+data "aws_ami" "amzn2" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["amazon"]
+}
+
 data "template_file" "user_data" {
   template = file("${path.module}/user_data.sh")
   vars = {
@@ -30,7 +46,7 @@ resource "aws_security_group" "servers" {
 }
 
 resource "aws_instance" "single" {
-  ami = "ami-0c115dbd34c69a004"  # Latest Amazon Linux 2
+  ami = data.aws_ami.amzn2.id
   instance_type = "t3.nano"
   subnet_id = aws_subnet.servers.id
   security_groups = [ aws_security_group.servers.id ]
