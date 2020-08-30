@@ -1,3 +1,3 @@
-output "public_ip" {
-  value = aws_instance.single.public_ip
+output "asg_id" {
+  value = aws_autoscaling_group.servers.id
 }

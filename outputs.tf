@@ -1,3 +1,3 @@
-output "public_ip" {
-  value = module.sample-app.public_ip
+output "asg_id" {
+  value = module.sample-app.asg_id
 }
