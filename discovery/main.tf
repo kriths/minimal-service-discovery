@@ -2,25 +2,29 @@ data "aws_route53_zone" "zone" {
   name = var.domain
 }
 
+data "archive_file" "deployment" {
+  source_file = "${path.module}/lambda.py"
+  output_path = ".build/lambda-deployment.zip"
+  type = "zip"
+}
+
 locals {
   prefix = var.subdomain == "" ? "" : "${var.subdomain}."  # Skip preceding dot for apex
   record_name = "${local.prefix}${var.domain}."
 }
 
-resource "aws_sns_topic" "launch_events" {
-  name_prefix = "asg_launch_"
-}
+module "launch" {
+  source = "./launch"
 
-resource "aws_autoscaling_notification" "launch" {
-  group_names = [ var.asg_id ]
-  notifications = [ "autoscaling:EC2_INSTANCE_LAUNCH" ]
-  topic_arn = aws_sns_topic.launch_events.arn
-}
-
-resource "aws_sns_topic_subscription" "launch_lambda" {
-  topic_arn = aws_sns_topic.launch_events.arn
-  protocol = "lambda"
-  endpoint = aws_lambda_function.launch_handler.arn
+  asg_id = var.asg_id
+  role_arn = aws_iam_role.lambda.arn
+  lambda_deployment = data.archive_file.deployment
+  lambda_environment = {
+    HOSTED_ZONE = data.aws_route53_zone.zone.id
+    DOMAIN = var.domain
+    SUBDOMAIN = var.subdomain
+    ASG_ID = var.asg_id
+  }
 }
 
 # Ensure any records that have been created during execution are removed on destroy
