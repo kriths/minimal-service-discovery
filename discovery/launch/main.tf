@@ -6,7 +6,7 @@ resource "aws_lambda_function" "launch_handler" {
   timeout = 5 * 60
 
   filename = var.lambda_deployment.output_path
-  source_code_hash =var.lambda_deployment.output_base64sha256
+  source_code_hash = var.lambda_deployment.output_base64sha256
 
   role = var.role_arn
 
@@ -36,4 +36,9 @@ resource "aws_lambda_permission" "launch_sns" {
   function_name = aws_lambda_function.launch_handler.function_name
   principal = "sns.amazonaws.com"
   source_arn = aws_sns_topic.launch_events.arn
+}
+
+resource "aws_cloudwatch_log_group" "logs" {
+  name = "/aws/lambda/${aws_lambda_function.launch_handler.function_name}"
+  retention_in_days = 3
 }

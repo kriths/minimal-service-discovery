@@ -6,7 +6,7 @@ resource "aws_lambda_function" "schedule_handler" {
   timeout = 5 * 60
 
   filename = var.lambda_deployment.output_path
-  source_code_hash =var.lambda_deployment.output_base64sha256
+  source_code_hash = var.lambda_deployment.output_base64sha256
 
   role = var.role_arn
 
@@ -29,4 +29,9 @@ resource "aws_lambda_permission" "schedule_cw" {
   function_name = aws_lambda_function.schedule_handler.function_name
   principal = "events.amazonaws.com"
   source_arn = aws_cloudwatch_event_rule.schedule.arn
+}
+
+resource "aws_cloudwatch_log_group" "logs" {
+  name = "/aws/lambda/${aws_lambda_function.schedule_handler.function_name}"
+  retention_in_days = 1
 }
