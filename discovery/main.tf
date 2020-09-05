@@ -11,6 +11,12 @@ data "archive_file" "deployment" {
 locals {
   prefix = var.subdomain == "" ? "" : "${var.subdomain}."  # Skip preceding dot for apex
   record_name = "${local.prefix}${var.domain}."
+  lambda_environment = {
+    HOSTED_ZONE = data.aws_route53_zone.zone.id
+    DOMAIN = var.domain
+    SUBDOMAIN = var.subdomain
+    ASG_ID = var.asg_id
+  }
 }
 
 module "launch" {
@@ -19,12 +25,15 @@ module "launch" {
   asg_id = var.asg_id
   role_arn = aws_iam_role.lambda.arn
   lambda_deployment = data.archive_file.deployment
-  lambda_environment = {
-    HOSTED_ZONE = data.aws_route53_zone.zone.id
-    DOMAIN = var.domain
-    SUBDOMAIN = var.subdomain
-    ASG_ID = var.asg_id
-  }
+  lambda_environment = local.lambda_environment
+}
+
+module "schedule" {
+  source = "./schedule"
+
+  role_arn = aws_iam_role.lambda.arn
+  lambda_deployment = data.archive_file.deployment
+  lambda_environment = local.lambda_environment
 }
 
 # Ensure any records that have been created during execution are removed on destroy

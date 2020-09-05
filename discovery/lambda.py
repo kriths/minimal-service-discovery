@@ -127,3 +127,7 @@ def on_launch(events, context):
 
         print(f"Health check failed for {instance_id}")
         time.sleep(CHECK_INTERVAL)
+
+
+def on_schedule(events, context):
+    check_and_set_dns()
