@@ -13,3 +13,10 @@ module "sample-app" {
   min_count = var.min_count
   max_count = var.max_count
 }
+
+module "discovery" {
+  source = "./discovery"
+
+  domain = var.domain
+  subdomain = var.subdomain
+}
