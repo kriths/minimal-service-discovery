@@ -7,6 +7,22 @@ locals {
   record_name = "${local.prefix}${var.domain}."
 }
 
+resource "aws_sns_topic" "launch_events" {
+  name_prefix = "asg_launch_"
+}
+
+resource "aws_autoscaling_notification" "launch" {
+  group_names = [ var.asg_id ]
+  notifications = [ "autoscaling:EC2_INSTANCE_LAUNCH" ]
+  topic_arn = aws_sns_topic.launch_events.arn
+}
+
+resource "aws_sns_topic_subscription" "launch_lambda" {
+  topic_arn = aws_sns_topic.launch_events.arn
+  protocol = "lambda"
+  endpoint = aws_lambda_function.launch_handler.arn
+}
+
 # Ensure any records that have been created during execution are removed on destroy
 resource "null_resource" "delete_dns_record" {
   triggers = {

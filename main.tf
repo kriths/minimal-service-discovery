@@ -17,6 +17,7 @@ module "sample-app" {
 module "discovery" {
   source = "./discovery"
 
+  asg_id = module.sample-app.asg_id
   domain = var.domain
   subdomain = var.subdomain
 }

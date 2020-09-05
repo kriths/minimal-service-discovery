@@ -8,3 +8,8 @@ variable "subdomain" {
   type = string
   default = ""
 }
+
+variable "asg_id" {
+  description = "Name / ID of the auto scaling group"
+  type = string
+}
