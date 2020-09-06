@@ -9,6 +9,11 @@ variable "subdomain" {
   default = ""
 }
 
+variable "asg_arn" {
+  description = "ARN of the auto scaling group"
+  type = string
+}
+
 variable "asg_id" {
   description = "Name / ID of the auto scaling group"
   type = string

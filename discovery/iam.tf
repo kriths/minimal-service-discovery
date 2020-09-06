@@ -63,6 +63,13 @@ resource "aws_iam_role_policy" "lambda-dns-rw" {
     {
       "Effect": "Allow",
       "Action": [
+        "autoscaling:SetInstanceHealth"
+      ],
+      "Resource": "${var.asg_arn}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
         "ec2:DescribeInstances"
       ],
       "Resource": "*"

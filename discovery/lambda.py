@@ -79,6 +79,11 @@ def remove_current_records(record_name):
             )
 
 
+def set_instance_unhealthy(instance_id):
+    print(f"Setting instance {instance_id} to unhealthy")
+    asg_client.set_instance_health(InstanceId=instance_id, HealthStatus='Unhealthy')
+
+
 def check_and_set_dns():
     """Check all instances of the asg and add reachable IPs to DNS record"""
     group = asg_client.describe_auto_scaling_groups(AutoScalingGroupNames=[ASG_ID])['AutoScalingGroups'][0]
@@ -89,6 +94,8 @@ def check_and_set_dns():
         status = check_instance_state(instance_id)
         if status[0]:
             reachable_ips.append(status[1])
+        else:
+            set_instance_unhealthy(instance_id)
 
     record_name = f'{DOMAIN}.'
     if SUBDOMAIN:
@@ -98,6 +105,7 @@ def check_and_set_dns():
         print("All hosts down!", file=sys.stderr)
         remove_current_records(record_name)
     else:
+        print(f"Found {len(reachable_ips)} instances: {reachable_ips}")
         r53_client.change_resource_record_sets(
             HostedZoneId=HOSTED_ZONE,
             ChangeBatch={
@@ -127,6 +135,8 @@ def on_launch(events, context):
 
         print(f"Health check failed for {instance_id}")
         time.sleep(CHECK_INTERVAL)
+
+    set_instance_unhealthy(instance_id)
 
 
 def on_schedule(events, context):
